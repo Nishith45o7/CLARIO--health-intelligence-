@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
 import { ClinicalCase, CaseStats } from '../types/case';
 import { api } from '../services/api';
 import { CaseDetailModal } from './CaseDetailModal';
@@ -11,7 +11,6 @@ import {
   Search,
   RefreshCw,
   Eye,
-  Filter,
   Sparkles,
   AlertCircle
 } from './Icons';
@@ -20,6 +19,25 @@ interface DoctorDashboardProps {
   onNavigateToIntake: () => void;
   selectedCaseId?: string | null;
   onClearSelectedCaseId?: () => void;
+}
+
+// Pure date formatting helper to preserve React compiler purity
+function formatRelativeTime(isoString: string): string {
+  try {
+    const timestamp = new Date(isoString).getTime();
+    if (isNaN(timestamp)) return isoString;
+    const diffMs = Date.now() - timestamp;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  } catch {
+    return isoString;
+  }
 }
 
 export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
@@ -32,11 +50,12 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCase, setSelectedCase] = useState<ClinicalCase | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setIsRefreshing(true);
     setError(null);
     try {
@@ -61,10 +80,39 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [selectedCaseId]);
 
   useEffect(() => {
-    fetchDashboardData();
+    let ignore = false;
+    const load = async () => {
+      try {
+        const [fetchedCases, fetchedStats] = await Promise.all([
+          api.getCases(),
+          api.getStats(),
+        ]);
+        if (!ignore) {
+          setCases(fetchedCases);
+          setStats(fetchedStats);
+          if (selectedCaseId) {
+            const found = fetchedCases.find((c) => c.id === selectedCaseId);
+            if (found) setSelectedCase(found);
+          }
+        }
+      } catch (err: any) {
+        if (!ignore) {
+          setError(err.message || 'Unable to connect to CLARIO backend on port 8000.');
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      ignore = true;
+    };
   }, [selectedCaseId]);
 
   const handleSeedDemo = async () => {
@@ -88,8 +136,9 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
     api.getStats().then(setStats).catch(() => {});
   };
 
-  // Filtered and searched cases
+  // Filtered and searched cases (using deferred query for maximum UI efficiency)
   const filteredCases = useMemo(() => {
+    const q = deferredSearchQuery.toLowerCase().trim();
     return cases.filter((c) => {
       // Status filter
       if (statusFilter === 'critical') {
@@ -99,8 +148,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
       }
 
       // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
+      if (q) {
         const matchesId = c.id.toLowerCase().includes(q);
         const matchesName = c.patient_name.toLowerCase().includes(q);
         const matchesComplaint = c.chief_complaint.toLowerCase().includes(q);
@@ -110,25 +158,7 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
 
       return true;
     });
-  }, [cases, statusFilter, searchQuery]);
-
-  const formatRelativeTime = (isoString: string) => {
-    try {
-      const date = new Date(isoString);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
-      const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
-      const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays}d ago`;
-    } catch {
-      return isoString;
-    }
-  };
+  }, [cases, statusFilter, deferredSearchQuery]);
 
   return (
     <div>
@@ -280,13 +310,14 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             className="form-input"
             style={{ paddingLeft: '2.4rem', fontSize: '0.85rem' }}
             placeholder="Search by case ID, patient name, chief complaint..."
+            aria-label="Search by case ID, patient name, chief complaint, or symptoms"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Status Filter Tabs */}
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }} role="toolbar" aria-label="Case status filters">
           {[
             { id: 'all', label: 'All Cases' },
             { id: 'pending', label: 'Pending' },
@@ -299,9 +330,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
               type="button"
               id={`filter-tab-${tab.id}`}
               className={`btn btn-sm ${statusFilter === tab.id ? 'btn-primary' : 'btn-secondary'}`}
+              aria-pressed={statusFilter === tab.id}
               onClick={() => setStatusFilter(tab.id)}
             >
-              {tab.id === 'critical' && <ShieldAlert size={14} />}
+              {tab.id === 'critical' && <ShieldAlert size={14} aria-hidden="true" />}
               <span>{tab.label}</span>
             </button>
           ))}

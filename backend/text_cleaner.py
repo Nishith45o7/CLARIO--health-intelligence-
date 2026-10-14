@@ -22,6 +22,11 @@ def clean_clinical_text(raw_text: str) -> str:
 
     text = raw_text
 
+    # Strip dangerous HTML/script injection tags (e.g. <script>, <img ...>, <iframe>)
+    text = re.sub(r"<\/?(?:script|style|iframe|img|svg|object|embed|applet|meta|link)[^>]*>", "", text, flags=re.IGNORECASE)
+    # Neutralize inline event handlers or javascript: protocols
+    text = re.sub(r"(?i)\bjavascript:[^\s]*", "", text)
+
     # Normalize line endings
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
@@ -47,3 +52,4 @@ def clean_clinical_text(raw_text: str) -> str:
 
     text = "\n".join(cleaned_lines)
     return text.strip()
+

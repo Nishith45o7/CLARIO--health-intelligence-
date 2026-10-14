@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClinicalCase, CaseStatus } from '../types/case';
 import { api } from '../services/api';
 import {
   X,
   User,
-  HeartPulse,
   Pill,
   FileText,
   ShieldAlert,
   Clock,
-  AlertCircle,
   CheckCircle2,
   AlertTriangle,
   Info,
@@ -32,6 +30,17 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [doctorNotes, setDoctorNotes] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  // Close on Escape key for WCAG accessibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleStatusChange = async (newStatus: CaseStatus) => {
     if (newStatus === currentCase.status) return;
@@ -81,7 +90,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="case-modal-title">
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header">
@@ -101,7 +110,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#123B3A' }}>
+                <h3 id="case-modal-title" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#123B3A' }}>
                   {currentCase.patient_name}
                 </h3>
                 <span style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 500 }}>

@@ -390,13 +390,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
                 name="patient_name"
                 className={`form-input ${errors.patient_name ? 'error' : ''}`}
                 placeholder="e.g. Jane Doe or PT-9281"
+                aria-required="true"
+                aria-invalid={!!errors.patient_name}
+                aria-describedby={errors.patient_name ? 'err-patient_name' : undefined}
                 value={formData.patient_name}
                 onChange={handleInputChange}
                 required
               />
               {errors.patient_name && (
-                <div className="form-error">
-                  <AlertCircle size={14} />
+                <div className="form-error" id="err-patient_name" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" />
                   <span>{errors.patient_name}</span>
                 </div>
               )}
@@ -414,13 +417,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
                 max="125"
                 className={`form-input ${errors.age ? 'error' : ''}`}
                 placeholder="e.g. 45"
+                aria-required="true"
+                aria-invalid={!!errors.age}
+                aria-describedby={errors.age ? 'err-age' : undefined}
                 value={formData.age === ('' as any) ? '' : formData.age}
                 onChange={handleInputChange}
                 required
               />
               {errors.age && (
-                <div className="form-error">
-                  <AlertCircle size={14} />
+                <div className="form-error" id="err-age" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" />
                   <span>{errors.age}</span>
                 </div>
               )}
@@ -453,13 +459,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
               name="chief_complaint"
               className={`form-input ${errors.chief_complaint ? 'error' : ''}`}
               placeholder="e.g. Sudden sharp chest tightness and shortness of breath"
+              aria-required="true"
+              aria-invalid={!!errors.chief_complaint}
+              aria-describedby={errors.chief_complaint ? 'err-chief_complaint' : undefined}
               value={formData.chief_complaint}
               onChange={handleInputChange}
               required
             />
             {errors.chief_complaint && (
-              <div className="form-error">
-                <AlertCircle size={14} />
+              <div className="form-error" id="err-chief_complaint" role="alert">
+                <AlertCircle size={14} aria-hidden="true" />
                 <span>{errors.chief_complaint}</span>
               </div>
             )}
@@ -477,13 +486,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
                 rows={4}
                 className={`form-textarea ${errors.symptoms ? 'error' : ''}`}
                 placeholder="Describe the sensations, location (e.g. radiates to arm, localized), triggers (e.g. exertion, food), and any accompanying issues..."
+                aria-required="true"
+                aria-invalid={!!errors.symptoms}
+                aria-describedby={errors.symptoms ? 'err-symptoms' : undefined}
                 value={formData.symptoms}
                 onChange={handleInputChange}
                 required
               />
               {errors.symptoms && (
-                <div className="form-error">
-                  <AlertCircle size={14} />
+                <div className="form-error" id="err-symptoms" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" />
                   <span>{errors.symptoms}</span>
                 </div>
               )}
@@ -500,13 +512,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
                 name="symptom_duration"
                 className={`form-input ${errors.symptom_duration ? 'error' : ''}`}
                 placeholder="e.g. 3 hours ago, sudden onset after exertion"
+                aria-required="true"
+                aria-invalid={!!errors.symptom_duration}
+                aria-describedby={errors.symptom_duration ? 'err-symptom_duration' : undefined}
                 value={formData.symptom_duration}
                 onChange={handleInputChange}
                 required
               />
               {errors.symptom_duration && (
-                <div className="form-error">
-                  <AlertCircle size={14} />
+                <div className="form-error" id="err-symptom_duration" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" />
                   <span>{errors.symptom_duration}</span>
                 </div>
               )}

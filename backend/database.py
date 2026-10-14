@@ -31,13 +31,23 @@ DB_FILE = get_db_path()
 
 
 def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(get_db_path())
+    """Returns an optimized SQLite database connection with caching and WAL enabled."""
+    conn = sqlite3.connect(get_db_path(), timeout=10.0)
     conn.row_factory = sqlite3.Row
+    # High-efficiency SQLite PRAGMAs
+    try:
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA synchronous = NORMAL;")
+        conn.execute("PRAGMA cache_size = -64000;")  # 64MB memory cache
+        conn.execute("PRAGMA temp_store = MEMORY;")
+        conn.execute("PRAGMA busy_timeout = 5000;")
+    except sqlite3.Error:
+        pass
     return conn
 
 
 def init_db():
-    """Initializes tables and seeds synthetic demo cases if database is empty."""
+    """Initializes tables, indices, and seeds synthetic demo cases if database is empty."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -59,9 +69,16 @@ def init_db():
             updated_at TEXT NOT NULL
         )
     """)
+
+    # Indices for ultra-fast query execution and dashboard aggregations (Efficiency boost)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_cases_status ON cases(status);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_cases_created_at ON cases(created_at DESC);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_cases_emergency ON cases(has_emergency_flags);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_cases_lookup ON cases(status, created_at DESC);")
+
     conn.commit()
 
-    # Check if empty, seed synthetic cases for realistic hackathon demonstration
+    # Check if empty, seed synthetic cases for realistic demonstration
     cursor.execute("SELECT COUNT(*) FROM cases")
     count = cursor.fetchone()[0]
     if count == 0:

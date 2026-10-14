@@ -24,7 +24,7 @@ export function App() {
           setIsBackendConnected(true);
           setPendingCount(stats.pending);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setIsBackendConnected(false);
         }

@@ -73,6 +73,14 @@ async function start() {
         return;
       }
 
+      const securityHeaders = {
+        'Content-Type': contentType,
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+      };
+
       // If serving index.html, inject bundle scripts
       if (filePath.endsWith('index.html')) {
         let html = data.toString();
@@ -81,12 +89,12 @@ async function start() {
           '<script type="module" src="/src/main.tsx"></script>',
           '<link rel="stylesheet" href="/dist/bundle.css">\n    <script src="/dist/bundle.js"></script>'
         );
-        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.writeHead(200, { ...securityHeaders, 'Content-Type': 'text/html' });
         res.end(html);
         return;
       }
 
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, securityHeaders);
       res.end(data);
     });
   });

@@ -35,27 +35,31 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             {/* Demo Navigation Switcher */}
-            <nav className="nav-tabs" aria-label="Demo Role Navigation">
+            <nav className="nav-tabs" aria-label="Demo Role Navigation" role="tablist">
               <button
                 type="button"
                 id="nav-btn-intake"
+                role="tab"
+                aria-selected={activeView === 'intake'}
                 className={`nav-tab-btn ${activeView === 'intake' ? 'active' : ''}`}
                 onClick={() => setActiveView('intake')}
               >
-                <User size={16} />
+                <User size={16} aria-hidden="true" />
                 <span>Patient Intake</span>
               </button>
 
               <button
                 type="button"
                 id="nav-btn-dashboard"
+                role="tab"
+                aria-selected={activeView === 'dashboard'}
                 className={`nav-tab-btn ${activeView === 'dashboard' ? 'active' : ''}`}
                 onClick={() => setActiveView('dashboard')}
               >
-                <ClipboardList size={16} />
+                <ClipboardList size={16} aria-hidden="true" />
                 <span>Doctor Dashboard</span>
                 {pendingCount > 0 && (
-                  <span className="tab-badge" title={`${pendingCount} pending cases`}>
+                  <span className="tab-badge" title={`${pendingCount} pending cases`} aria-label={`${pendingCount} pending cases`}>
                     {pendingCount}
                   </span>
                 )}
@@ -65,9 +69,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Backend connectivity status */}
             <div
               className="backend-indicator"
+              role="status"
               title={isBackendConnected ? "Connected to FastAPI localhost:8000" : "Disconnected from backend server"}
             >
-              <div className={`status-dot ${isBackendConnected ? 'online' : 'offline'}`} />
+              <div className={`status-dot ${isBackendConnected ? 'online' : 'offline'}`} aria-hidden="true" />
               <span>{isBackendConnected ? 'API Online' : 'API Offline'}</span>
             </div>
           </div>

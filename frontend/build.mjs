@@ -18,6 +18,8 @@ async function buildProduction() {
     bundle: true,
     outfile: path.join(distDir, 'bundle.js'),
     minify: true,
+    treeShaking: true,
+    legalComments: 'none',
     sourcemap: true,
     jsx: 'automatic',
     define: {
