@@ -11,11 +11,27 @@ from typing import List, Optional, Dict, Any
 from clinical_rules import analyze_patient_case
 from text_cleaner import clean_clinical_text
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "clario.db")
+def get_db_path() -> str:
+    """Returns persistent DB path or writable /tmp location in serverless environments (e.g. Vercel)."""
+    if os.environ.get("CLARIO_DB_PATH"):
+        return os.environ["CLARIO_DB_PATH"]
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        return os.path.join("/tmp", "clario.db")
+    try:
+        test_file = os.path.join(os.path.dirname(__file__), ".write_test")
+        with open(test_file, "w") as f:
+            f.write("ok")
+        os.remove(test_file)
+        return os.path.join(os.path.dirname(__file__), "clario.db")
+    except (OSError, IOError):
+        return os.path.join("/tmp", "clario.db")
+
+
+DB_FILE = get_db_path()
 
 
 def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 

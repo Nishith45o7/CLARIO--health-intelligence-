@@ -1,0 +1,10 @@
+{
+  "name": "clario-health-intelligence",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CLARIO — Health Intelligence patient intake and clinician triage platform",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev"
+  }
+}

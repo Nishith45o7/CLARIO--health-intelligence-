@@ -17,24 +17,20 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS strictly for localhost origins (development)
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:4173",
-    "http://127.0.0.1:4173",
-]
-
+# Configure CORS for local development and deployed Vercel domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Ensure database and tables are initialized immediately on import / cold-start
+try:
+    db.init_db()
+except Exception as e:
+    print(f"Database initialization notice: {e}")
 
 
 @app.on_event("startup")

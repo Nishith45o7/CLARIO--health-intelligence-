@@ -37,9 +37,18 @@ async function buildProduction() {
   let html = fs.readFileSync(indexHtmlPath, 'utf8');
   html = html.replace(
     '<script type="module" src="/src/main.tsx"></script>',
-    '<link rel="stylesheet" href="./bundle.css">\n    <script src="./bundle.js"></script>'
+    '<link rel="stylesheet" href="/bundle.css">\n    <script src="/bundle.js"></script>'
   );
   fs.writeFileSync(path.join(distDir, 'index.html'), html);
+
+  // Copy public assets into dist
+  const publicDir = path.join(__dirname, 'public');
+  if (fs.existsSync(publicDir)) {
+    const files = fs.readdirSync(publicDir);
+    for (const file of files) {
+      fs.copyFileSync(path.join(publicDir, file), path.join(distDir, file));
+    }
+  }
 
   console.log('Production build completed successfully in dist/');
 }
