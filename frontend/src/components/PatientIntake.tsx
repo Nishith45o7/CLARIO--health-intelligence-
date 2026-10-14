@@ -76,13 +76,24 @@ const PRESET_CASES: Array<{
   }
 ];
 
+interface IntakeFormData {
+  patient_name: string;
+  age: number | '';
+  chief_complaint: string;
+  symptoms: string;
+  symptom_duration: string;
+  medical_history: string;
+  current_medications: string;
+  additional_notes: string;
+}
+
 export const PatientIntake: React.FC<PatientIntakeProps> = ({
   onCaseSubmitted,
   onNavigateToDashboard,
 }) => {
-  const [formData, setFormData] = useState<CaseCreateInput>({
+  const [formData, setFormData] = useState<IntakeFormData>({
     patient_name: '',
-    age: '' as unknown as number,
+    age: '',
     chief_complaint: '',
     symptoms: '',
     symptom_duration: '',
@@ -111,7 +122,16 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
   };
 
   const loadPreset = (preset: CaseCreateInput) => {
-    setFormData(preset);
+    setFormData({
+      patient_name: preset.patient_name,
+      age: preset.age,
+      chief_complaint: preset.chief_complaint,
+      symptoms: preset.symptoms,
+      symptom_duration: preset.symptom_duration,
+      medical_history: preset.medical_history || '',
+      current_medications: preset.current_medications || '',
+      additional_notes: preset.additional_notes || '',
+    });
     setErrors({});
     setSubmitError(null);
   };
@@ -124,7 +144,7 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
     }
 
     const ageNum = Number(formData.age);
-    if (formData.age === ('' as any) || isNaN(ageNum) || ageNum < 0 || ageNum > 125) {
+    if (formData.age === '' || isNaN(ageNum) || ageNum < 0 || ageNum > 125) {
       newErrors.age = 'Please enter a valid age between 0 and 125.';
     }
 
@@ -168,11 +188,10 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
       const result = await api.createCase(payload);
       setSubmittedCase(result);
       onCaseSubmitted(result);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit case. Please ensure backend server on port 8000 is running.';
       console.error('Case submission error:', err);
-      setSubmitError(
-        err.message || 'Failed to submit case. Please ensure backend server on port 8000 is running.'
-      );
+      setSubmitError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -182,7 +201,7 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
     setSubmittedCase(null);
     setFormData({
       patient_name: '',
-      age: '' as unknown as number,
+      age: '',
       chief_complaint: '',
       symptoms: '',
       symptom_duration: '',
@@ -420,7 +439,7 @@ export const PatientIntake: React.FC<PatientIntakeProps> = ({
                 aria-required="true"
                 aria-invalid={!!errors.age}
                 aria-describedby={errors.age ? 'err-age' : undefined}
-                value={formData.age === ('' as any) ? '' : formData.age}
+                value={formData.age}
                 onChange={handleInputChange}
                 required
               />

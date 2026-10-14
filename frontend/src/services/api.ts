@@ -20,7 +20,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
         if (typeof errorJson.detail === 'string') {
           errorDetail = errorJson.detail;
         } else if (Array.isArray(errorJson.detail)) {
-          errorDetail = errorJson.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+          errorDetail = errorJson.detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join(', ');
         }
       }
     } catch {

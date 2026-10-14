@@ -5,6 +5,9 @@
   "description": "CLARIO — Health Intelligence patient intake and clinician triage platform",
   "scripts": {
     "build": "cd frontend && npm install && npm run build",
-    "dev": "cd frontend && npm run dev"
+    "dev": "cd frontend && npm run dev",
+    "lint": "npm --prefix frontend run lint",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "test": "npm --prefix frontend test && python backend/test_api.py"
   }
 }

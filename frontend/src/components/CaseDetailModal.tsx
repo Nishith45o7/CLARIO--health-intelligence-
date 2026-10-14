@@ -53,9 +53,10 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
       onStatusUpdated(updated);
       setStatusMessage(`Status successfully updated to "${newStatus.replace('_', ' ').toUpperCase()}".`);
       setTimeout(() => setStatusMessage(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update status';
       console.error('Failed to update case status:', err);
-      setStatusMessage(`Error: ${err.message || 'Failed to update status'}`);
+      setStatusMessage(`Error: ${msg}`);
     } finally {
       setIsUpdatingStatus(false);
     }

@@ -54,6 +54,10 @@ export function App() {
 
   return (
     <div className="app-container">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <Navbar
         activeView={activeView}
         setActiveView={setActiveView}
@@ -61,7 +65,7 @@ export function App() {
         isBackendConnected={isBackendConnected}
       />
 
-      <main className="main-content">
+      <main className="main-content" id="main-content" tabIndex={-1}>
         {activeView === 'intake' ? (
           <PatientIntake
             onCaseSubmitted={handleCaseSubmitted}

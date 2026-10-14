@@ -73,9 +73,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
           setSelectedCase(found);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to connect to CLARIO backend on port 8000.';
       console.error('Failed to load doctor dashboard data:', err);
-      setError(err.message || 'Unable to connect to CLARIO backend on port 8000.');
+      setError(msg);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -98,9 +99,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
             if (found) setSelectedCase(found);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!ignore) {
-          setError(err.message || 'Unable to connect to CLARIO backend on port 8000.');
+          const msg = err instanceof Error ? err.message : 'Unable to connect to CLARIO backend on port 8000.';
+          setError(msg);
         }
       } finally {
         if (!ignore) {
@@ -120,9 +122,10 @@ export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({
       setIsRefreshing(true);
       await api.seedDemoCases();
       await fetchDashboardData();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to reseed database.';
       console.error('Failed to seed demo cases:', err);
-      setError(err.message || 'Failed to reseed database.');
+      setError(msg);
     } finally {
       setIsRefreshing(false);
     }
